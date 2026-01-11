@@ -12,7 +12,8 @@ move_h = 300
 fps_counter = False
 
 class Settings(QWidget):
-    def __init__(self):
+    def __init__(self, prev):
+        self.prev = prev
         super().__init__()
         self.initUI()
 
@@ -94,4 +95,4 @@ class Settings(QWidget):
         self.vkl_btn.setStyleSheet("background-color: white; font-size: 30px")
     
     def back(self):
-        pass
+        self.prev.show()
