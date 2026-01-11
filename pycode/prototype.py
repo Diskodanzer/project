@@ -1,6 +1,9 @@
 import arcade
+import sys
 import random
 import pprint
+from character import Character
+sys.setrecursionlimit(10000)
 
 # Параметры экрана
 SCREEN_WIDTH = 800
@@ -16,139 +19,70 @@ class GridGame(arcade.Window):
         self.rows = screen_width // cell_size
         self.cols = screen_height // cell_size
         self.painted = 0
+        self.player = arcade.SpriteList()
+        self.walls = arcade.SpriteList(use_spatial_hash=True) #1.создать класс стены, 2.Найти текстуру, 3.Подключить к проекту
+        self.keys = []
 
         # Создаём пустую сетку нужного размера
         self.grid = None
-        self.setup()
+        #self.setup()
     
-    def check(self, row, col, ch):
-        if ch == 'l':
-            y = row
-            x = col - 1
-            
-            return x >= 0 and self.grid[y][x] == 0 #and self.grid[y + 1][x] == 0 and self.grid[y - 1][x] == 0 and self.grid[y][x - 1] == 0
-        if ch == 'r':
-            return col + 1 < self.cols and self.grid[row][col + 1] == 0
-        if ch == 'u':
-            return row + 1 < self.rows and self.grid[row + 1][col] == 0
-        if ch == 'd':
-            return row - 1 >= 0 and self.grid[row - 1][col] == 0
-
+    def check(self, row, col):
+        if row <= 0 or row >= self.rows or col <= 0 or col >= self.cols:
+            return False
+        
+        # Проверяем, что клетка пуста
+        if self.grid[row][col] != 0:
+            return False
+        
+        # Проверяем соседей (не больше 2 занятых соседей из 8)
+        try:
+            neighbors = 0
+            for dr in [-1, 0, 1]:
+                for dc in [-1, 0, 1]:
+                    if dr == 0 and dc == 0:
+                        continue
+                    nr, nc = row + dr, col + dc
+                    if self.grid[nr][nc] == 1:
+                        neighbors += 1
+        
+            return neighbors <= 2
+        except IndexError:
+            pass
+    
+    def check_for_directions(self, lst):
+        new_lst = []
+        for elem in lst:
+            directions = []
+            if self.check(elem[0], elem[1] - 1):
+                directions.append((elem[0], elem[1] - 1))
+            if self.check(elem[0], elem[1] + 1):
+                directions.append((elem[0], elem[1] + 1))
+            if self.check(elem[0] + 1, elem[1]):
+                directions.append((elem[0] + 1, elem[1]))
+            if self.check(elem[0] - 1, elem[1]):
+                directions.append((elem[0] - 1, elem[1]))
+            if not directions:
+                continue
+            n1, n2 = random.choice(directions)
+            new_lst.append([n1, n2])
+            self.grid[n1][n2] = 1
+        return lst + new_lst
+    
     def setup(self):
         self.grid = [[0 for _ in range(self.cols)] for _ in range(self.rows)]
-        
-        row, col = 0, 0
-        self.grid[row][col] = 1
-    
-        steps = 100
-        total = 0
-    
-        for _ in range(steps):
-            directions = []
-            if self.check(row, col, 'l'):
-                directions.append(('l', row, col - 1))
-            if self.check(row, col, 'r'):
-                directions.append(('r', row, col + 1))
-            if self.check(row, col, 'u'):
-                directions.append(('u', row + 1, col))
-            if self.check(row, col, 'd'):
-                directions.append(('d', row - 1, col))
-        
-            if not directions:
-                break
-            total += 1
-            
-            ch, new_row, new_col = random.choice(directions)
-        
-            row, col = new_row, new_col
-            self.grid[row][col] = 1
-        if total < steps:
-            self.setup()
-
-
-    '''def setup(self):
-        for row in range(self.rows):
-            for col in range(self.cols):
-                ch = random.choice(['l', 'r', 'd', 'u'])
-                if ch == 'l':
-                    if self.check(row, col, ch):
-                        self.grid[row][col - 1] = 1
-                        self.curr = [row, col - 1]
-                    else:
-                        while not self.check(row, col, ch):
-                            ch = random.choice(['l', 'r', 'd', 'u'])
-                        if ch == 'l':
-                            self.grid[row][col - 1] = 1
-                            self.curr = [row, col - 1]
-                        if ch == 'r':
-                            self.grid[row][col + 1] = 1
-                            self.curr = [row, col + 1]
-                        if ch == 'd':
-                            self.grid[row - 1][col] = 1
-                            self.curr = [row - 1, col]
-                        if ch == 'u':
-                            self.grid[row + 1][col] = 1
-                            self.curr = [row + 1, col]
-                if ch == 'r':
-                    if self.check(row, col, ch):
-                        self.grid[row][col + 1] = 1
-                        self.curr = [row, col + 1]
-                    else:
-                        while not self.check(row, col, ch):
-                            ch = random.choice(['l', 'r', 'd', 'u'])
-                        if ch == 'l':
-                            self.grid[row][col - 1] = 1
-                            self.curr = [row, col - 1]
-                        if ch == 'r':
-                            self.grid[row][col + 1] = 1
-                            self.curr = [row, col + 1]
-                        if ch == 'd':
-                            self.grid[row - 1][col] = 1
-                            self.curr = [row - 1, col]
-                        if ch == 'u':
-                            self.grid[row + 1][col] = 1
-                            self.curr = [row + 1, col]
-                if ch == 'd':
-                    if self.check(row, col, ch):
-                        self.grid[row - 1][col] = 1
-                        self.curr = [row - 1, col]
-                    else:
-                        while not self.check(row, col, ch):
-                            ch = random.choice(['l', 'r', 'd', 'u'])
-                        if ch == 'l':
-                            self.grid[row][col - 1] = 1
-                            self.curr = [row, col - 1]
-                        if ch == 'r':
-                            self.grid[row][col + 1] = 1
-                            self.curr = [row, col + 1]
-                        if ch == 'd':
-                            self.grid[row - 1][col] = 1
-                            self.curr = [row - 1, col]
-                        if ch == 'u':
-                            self.grid[row + 1][col] = 1
-                            self.curr = [row + 1, col]
-                if ch == 'u':
-                    if self.check(row, col, ch):
-                        self.grid[row + 1][col] = 1
-                        self.curr = [row + 1, col]
-                    else:
-                        while not self.check(row, col, ch):
-                            ch = random.choice(['l', 'r', 'd', 'u'])
-                        if ch == 'l':
-                            self.grid[row][col - 1] = 1
-                            self.curr = [row, col - 1]
-                        if ch == 'r':
-                            self.grid[row][col + 1] = 1
-                            self.curr = [row, col + 1]
-                        if ch == 'd':
-                            self.grid[row - 1][col] = 1
-                            self.curr = [row - 1, col]
-                        if ch == 'u':
-                            self.grid[row + 1][col] = 1
-                            self.curr = [row + 1, col]'''
+        self.grid[self.rows // 2 - 1][self.cols // 2 - 1] = 1
+        self.painted = [[self.rows // 2 - 1, self.cols // 2 - 1]]
+        self.prev = []
+        while self.prev != self.painted:
+            self.prev = self.painted
+            self.painted = self.check_for_directions(self.painted)
+        self.player.append(Character(SCREEN_WIDTH, SCREEN_HEIGHT, 0.25, 100, self.painted[0][0] * self.cell_size  + self.cell_size // 2, self.painted[0][1] * self.cell_size + self.cell_size // 2))
+        #pprint.pprint(self.grid)
+        #pprint.pprint(self.painted)
                 
-
     def on_draw(self):
+        self.clear()
         # Рисуем сетку
         for row in range(self.rows):
             for col in range(self.cols):
@@ -160,7 +94,19 @@ class GridGame(arcade.Window):
                                             self.cell_size,
                                             self.cell_size),
                                             color)
-
+        self.player.draw()
+    
+    def on_update(self, delta_time):
+        for elem in self.player:
+            elem.update(delta_time, self.keys)
+    
+    def on_key_press(self, symbol, modifiers):
+        self.keys.append(symbol)
+    
+    def on_key_release(self, symbol, modifiers):
+        del self.keys[self.keys.index(symbol)]
+    
+            
 def main():
     game = GridGame(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE, 40)
     game.setup()
