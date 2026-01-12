@@ -3,6 +3,7 @@ import sys
 import random
 import pprint
 from character import Character
+from wall import Wall
 sys.setrecursionlimit(10000)
 
 # Параметры экрана
@@ -15,12 +16,13 @@ class GridGame(arcade.Window):
     def __init__(self, screen_width, screen_height, screen_title, cell_size):
         super().__init__(screen_width, screen_height, screen_title)
 
+        self.world_camera = arcade.camera.Camera2D()
         self.cell_size = cell_size
-        self.rows = screen_width // cell_size
-        self.cols = screen_height // cell_size
+        self.rows = 1200 // cell_size
+        self.cols = 1200 // cell_size
         self.painted = 0
         self.player = arcade.SpriteList()
-        self.walls = arcade.SpriteList(use_spatial_hash=True) #1.создать класс стены, 2.Найти текстуру, 3.Подключить к проекту
+        self.walls = arcade.SpriteList(use_spatial_hash=True, spatial_hash_cell_size=cell_size*4) #1.создать класс стены, 2.Найти текстуру, 3.Подключить к проекту
         self.keys = []
 
         # Создаём пустую сетку нужного размера
@@ -77,13 +79,25 @@ class GridGame(arcade.Window):
         while self.prev != self.painted:
             self.prev = self.painted
             self.painted = self.check_for_directions(self.painted)
-        self.player.append(Character(SCREEN_WIDTH, SCREEN_HEIGHT, 0.25, 100, self.painted[0][0] * self.cell_size  + self.cell_size // 2, self.painted[0][1] * self.cell_size + self.cell_size // 2))
+        self.player.append(Character(1200, 1200, 0.25, 100, self.painted[0][0] * self.cell_size  + self.cell_size // 2, self.painted[0][1] * self.cell_size + self.cell_size // 2))
+        for row in range(self.rows):
+            for col in range(self.cols):
+                if self.grid[row][col] != 1:
+                    x = col * self.cell_size + self.cell_size // 2
+                    y = row * self.cell_size + self.cell_size // 2
+                    wall = Wall(x, y)
+                    self.walls.append(wall)
+        self.physics = arcade.physics_engines.PhysicsEngineSimple(
+            self.player[0],
+            self.walls
+        )
         #pprint.pprint(self.grid)
         #pprint.pprint(self.painted)
                 
     def on_draw(self):
         self.clear()
         # Рисуем сетку
+        self.world_camera.use()
         for row in range(self.rows):
             for col in range(self.cols):
                 x = col * self.cell_size + self.cell_size // 2
@@ -95,10 +109,18 @@ class GridGame(arcade.Window):
                                             self.cell_size),
                                             color)
         self.player.draw()
+        self.walls.draw()
     
     def on_update(self, delta_time):
         for elem in self.player:
             elem.update(delta_time, self.keys)
+        self.physics.update()
+        self.world_camera.position = arcade.math.lerp_2d(
+            self.world_camera.position,
+            (self.player[0].center_x,
+            self.player[0].center_y),
+            0.12
+        )
     
     def on_key_press(self, symbol, modifiers):
         self.keys.append(symbol)
