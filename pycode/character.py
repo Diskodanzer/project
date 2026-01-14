@@ -3,7 +3,7 @@ import arcade
 class Character(arcade.Sprite):
     def __init__(self, SCREEN_WIDTH, SCREEN_HEIGHT, SCALE, SPEED, x, y):
         super().__init__()
-        self.textures = [arcade.load_texture('recources/CharacterSprite.png')]
+        self.textures = [arcade.load_texture('recources\СharacterSprite.png')]
         self.set_texture(0)
         self.center_x = x
         self.width1 = SCREEN_WIDTH
@@ -13,8 +13,7 @@ class Character(arcade.Sprite):
         self.speed = SPEED
         self.is_walking = False
         self.pressed = []
-        print(self.speed)
-
+        
     def update(self, delta_time, keys_pressed):
         if len(keys_pressed) == 0:
             self.is_walking = False

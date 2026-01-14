@@ -6,5 +6,6 @@ class Wall(arcade.Sprite):
         self.texture = arcade.load_texture('recources/wall.png')
         self.center_x = x
         self.center_y = y
-        self.scale = 0.3
+        self.scale = 0.80
+        
         
