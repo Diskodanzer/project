@@ -7,37 +7,33 @@ from wall import Wall
 sys.setrecursionlimit(10000)
 
 # Параметры экрана
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 800
-SCREEN_TITLE = "Клетчатое поле"
+SCREEN_WIDTH = 500
+SCREEN_HEIGHT = 500
+SCREEN_TITLE = "Game"
 
 
 class GridGame(arcade.Window):
     def __init__(self, screen_width, screen_height, screen_title, cell_size):
-        super().__init__(screen_width, screen_height, screen_title)
+        super().__init__(screen_width, screen_height, screen_title, fullscreen=False, resizable=True)
 
         self.world_camera = arcade.camera.Camera2D()
         self.cell_size = cell_size
-        self.rows = 1200 // cell_size
-        self.cols = 1200 // cell_size
+        self.rows = 800 // cell_size
+        self.cols = 800 // cell_size
         self.painted = 0
         self.player = arcade.SpriteList()
         self.walls = arcade.SpriteList(use_spatial_hash=True, spatial_hash_cell_size=cell_size*4) #1.создать класс стены, 2.Найти текстуру, 3.Подключить к проекту
         self.keys = []
 
-        # Создаём пустую сетку нужного размера
         self.grid = None
-        #self.setup()
     
     def check(self, row, col):
         if row <= 0 or row >= self.rows or col <= 0 or col >= self.cols:
             return False
         
-        # Проверяем, что клетка пуста
         if self.grid[row][col] != 0:
             return False
         
-        # Проверяем соседей (не больше 2 занятых соседей из 8)
         try:
             neighbors = 0
             for dr in [-1, 0, 1]:
@@ -79,7 +75,7 @@ class GridGame(arcade.Window):
         while self.prev != self.painted:
             self.prev = self.painted
             self.painted = self.check_for_directions(self.painted)
-        self.player.append(Character(1200, 1200, 0.25, 100, self.painted[0][0] * self.cell_size  + self.cell_size // 2, self.painted[0][1] * self.cell_size + self.cell_size // 2))
+        self.player.append(Character(800, 800, 0.25, 100, self.painted[0][0] * self.cell_size  + self.cell_size // 2, self.painted[0][1] * self.cell_size + self.cell_size // 2))
         for row in range(self.rows):
             for col in range(self.cols):
                 if self.grid[row][col] != 1:
@@ -96,7 +92,6 @@ class GridGame(arcade.Window):
                 
     def on_draw(self):
         self.clear()
-        # Рисуем сетку
         self.world_camera.use()
         for row in range(self.rows):
             for col in range(self.cols):
@@ -106,8 +101,7 @@ class GridGame(arcade.Window):
                     color = arcade.color.LIGHT_GRAY
                     arcade.draw_rect_filled(arcade.rect.XYWH(x, y,
                                             self.cell_size,
-                                            self.cell_size),
-                                            color)
+                                            self.cell_size), arcade.color.DAVY_GREY)
         self.player.draw()
         self.walls.draw()
     
