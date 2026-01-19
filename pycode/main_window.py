@@ -3,8 +3,8 @@ from PyQt6.QtGui import QPixmap
 
 import sys
 
-from pycode.Settings_window import Settings
-from pycode.prototype import GridGame
+from Settings_window import Settings
+from prototype import GridGame
 
 #consts
 screen_w = 1280
