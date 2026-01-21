@@ -1,98 +1,77 @@
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QPixmap
-from PyQt6.QtWidgets import QPushButton, QLineEdit, QWidget, QLabel, QApplication
+import arcade
+from arcade.gui import UIManager, UIFlatButton, UITextureButton, UILabel, UIInputText, UITextArea, UISlider, UIDropdown, \
+    UIMessageBox  # Это разные виджеты
+from arcade.gui.widgets.layout import UIAnchorLayout, UIBoxLayout  # А это менеджеры компоновки, как в pyQT
 
-import sys
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 600
 
-#const
-screen_w = 1280
-screen_h = 720
-move_w = 750
-move_h = 300
-fps_counter = False
 
-class Settings(QWidget):
-    def __init__(self, prev):
-        self.prev = prev
-        super().__init__()
-        self.initUI()
+class MainWindow(arcade.Window):
+    def __init__(self):
+        super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, "Супер GUI Пример!")
+        arcade.set_background_color(arcade.color.BLACK)
 
-    def initUI(self):
-        self.setWindowTitle('Настройки')
-        self.setStyleSheet("background-color: black")
-        self.setGeometry(move_w, move_h, screen_w, screen_h)
-        self.pixmap = QPixmap('resources/bg.jpeg')
-        self.img = QLabel(self)
-        self.img.resize(1280, 720)
-        self.img = QLabel(self)
-        self.img.setPixmap(self.pixmap)
-        self.screen_title = QLabel(self)
-        self.screen_title.move(100, 100)
-        self.screen_title.setText('Размер окна:')
-        self.screen_title.setStyleSheet("font-size: 30px; color: white")
-        self.input_screen_w = QLineEdit(self)
-        self.input_screen_w.move(350, 105)
-        self.input_screen_w.resize(100, 35)
-        self.input_screen_w.setStyleSheet("font-size: 30px; color: white")
-        self.x = QLabel(self)
-        self.x.setStyleSheet("font-size: 30px; color: white")
-        self.x.setText('X')
-        self.x.move(451, 100)
-        self.input_screen_h = QLineEdit(self)
-        self.input_screen_h.resize(100, 35)
-        self.input_screen_h.setStyleSheet("font-size: 30px; color: white")
-        self.input_screen_h.move(500, 105)
-        self.move_title = QLabel(self)
-        self.move_title.move(100, 200)
-        self.move_title.setText('Сдвиг окна:')
-        self.move_title.setStyleSheet("font-size: 30px; color: white")
-        self.input_move_w = QLineEdit(self)
-        self.input_move_w.move(350, 205)
-        self.input_move_w.resize(100, 35)
-        self.input_move_w.setStyleSheet("font-size: 30px; color: white")
-        self.x = QLabel(self)
-        self.x.setStyleSheet("font-size: 30px; color: white")
-        self.x.setText('X')
-        self.x.move(451, 200)
-        self.input_move_h = QLineEdit(self)
-        self.input_move_h.resize(100, 35)
-        self.input_move_h.setStyleSheet("font-size: 30px; color: white")
-        self.input_move_h.move(500, 205)
-        self.fps_counter = QLabel(self)
-        self.fps_counter.setStyleSheet("font-size: 30px; color: white")
-        self.fps_counter.setText('Счётчик фпс:')
-        self.fps_counter.resize(200, 35)
-        self.fps_counter.move(100, 300)
-        self.vkl_btn = QPushButton(self)
-        self.vkl_btn.setText('Вкл')
-        self.vkl_btn.move(350, 300)
-        self.vkl_btn.resize(200, 35)
-        self.vkl_btn.setStyleSheet("background-color: white; font-size: 30px")
-        self.vkl_btn.clicked.connect(self.vkl)
-        self.vykl_btn = QPushButton(self)
-        self.vykl_btn.setText('Выкл')
-        self.vykl_btn.move(600, 300)
-        self.vykl_btn.resize(200, 35)
-        self.vykl_btn.setStyleSheet("background-color: gray; font-size: 30px")
-        self.vykl_btn.clicked.connect(self.vykl)
-        self.back_btn = QPushButton(self)
-        self.back_btn.setText('Назад')
-        self.back_btn.move(1000, 600)
-        self.back_btn.resize(200, 35)
-        self.back_btn.setStyleSheet("background-color: white; font-size: 30px")
-        self.back_btn.clicked.connect(self.back)
+        # UIManager — сердце GUI
+        self.manager = UIManager()
+        self.manager.enable()  # Включить, чтоб виджеты работали
 
-    def vkl(self):
-        global fps_counter
-        fps_counter = True
-        self.vkl_btn.setStyleSheet("background-color: gray; font-size: 30px")
-        self.vykl_btn.setStyleSheet("background-color: white; font-size: 30px")
+        # Layout для организации — как полки в шкафу
+        self.anchor_layout = UIAnchorLayout()  # Центрирует виджеты
+        self.box_layout = UIBoxLayout(vertical=True, space_between=10)  # Вертикальный стек
 
-    def vykl(self):
-        global fps_counter
-        fps_counter = False
-        self.vykl_btn.setStyleSheet("background-color: gray; font-size: 30px")
-        self.vkl_btn.setStyleSheet("background-color: white; font-size: 30px")
-    
-    def back(self):
-        self.prev.show()
+        # Добавим все виджеты в box, потом box в anchor
+        self.setup_widgets()  # Функция ниже
+
+        self.anchor_layout.add(self.box_layout)  # Box в anchor
+        self.manager.add(self.anchor_layout)  # Всё в manager
+
+
+
+    def setup_widgets(self):
+        label = UILabel(text="Настройки",
+                        font_size=50,
+                        text_color=arcade.color.RED,
+                        width=300,
+                        align="center")
+        self.box_layout.add(label)
+
+        label = UILabel(text="Размер экрана",
+                        font_size=30,
+                        text_color=arcade.color.RED,
+                        width=300,
+                        align="center")
+        self.box_layout.add(label)
+
+        dropdown = UIDropdown(options=["1080 x 720", "800 x 600", "1440 x 1080"], width=200)
+        dropdown.on_change = lambda value: print(f"Выбрано: {value}")
+        self.box_layout.add(dropdown)
+
+    def on_draw(self):
+        self.clear()
+        self.manager.draw()  # Рисуй GUI поверх всего
+
+    def on_mouse_press(self, x, y, button, modifiers):
+        pass  # Для кликов, но manager сам обрабатывает
+
+    def on_button_clicked(self):
+        pass
+
+    def open_game(self):
+        print('fg')
+
+    def open_settings(self):
+        print('settings')
+
+
+def main():
+    # Создаём экземпляр нашего окна (800×600 пикселей, заголовок «Arcade Первый Контакт»)
+    window = MainWindow()
+    # Вызываем setup() для инициализации игровых объектов
+    window.run()
+    # Запускаем игровой цикл! Окно будет работать, пока его не закроют
+    arcade.run()
+
+
+if __name__ == "__main__":
+    main()

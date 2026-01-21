@@ -1,44 +1,75 @@
-from PyQt6.QtWidgets import QPushButton, QWidget, QApplication, QLabel
-from PyQt6.QtGui import QPixmap
+import arcade
+from arcade.gui import UIManager, UIFlatButton, UITextureButton, UILabel, UIInputText, UITextArea, UISlider, UIDropdown, \
+    UIMessageBox  # Это разные виджеты
+from arcade.gui.widgets.layout import UIAnchorLayout, UIBoxLayout  # А это менеджеры компоновки, как в pyQT
 
-import sys
-
-from Settings_window import Settings
-from prototype import GridGame
-
-#consts
-screen_w = 1280
-screen_h = 720
-move_w = 750
-move_h = 300
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 600
 
 
-class Main_window(QWidget):
+class MainWindow(arcade.Window):
     def __init__(self):
-        super().__init__()
-        self.initUI()
-    def initUI(self):
-        self.setWindowTitle('vymluva')
-        self.setGeometry(move_w, move_w, screen_w, screen_h)
-        self.pixmap = QPixmap('resources/bg.jpeg')
-        self.img = QLabel(self)
-        self.img.resize(1280, 720)
-        self.img.setPixmap(self.pixmap)
-        self.start_btn = QPushButton(self)
-        self.start_btn.setText('Начать')
-        self.start_btn.resize(525, 100)
-        self.start_btn.move(350, 150)
-        self.start_btn.clicked.connect(self.start)
-        self.settings_btn = QPushButton(self)
-        self.settings_btn.setText('Настройки')
-        self.settings_btn.resize(525, 100)
-        self.settings_btn.move(350, 300)
-        self.settings_btn.clicked.connect(self.settings)
+        super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, "Супер GUI Пример!")
+        arcade.set_background_color(arcade.color.BLACK)
 
-    def start(self):
-        self.start_form = GridGame(self, None)
-        self.start_form.show()
+        # UIManager — сердце GUI
+        self.manager = UIManager()
+        self.manager.enable()  # Включить, чтоб виджеты работали
 
-    def settings(self):
-        self.settings_form = Settings(self, None)
-        self.settings_form.show()
+        # Layout для организации — как полки в шкафу
+        self.anchor_layout = UIAnchorLayout()  # Центрирует виджеты
+        self.box_layout = UIBoxLayout(vertical=True, space_between=10)  # Вертикальный стек
+
+        # Добавим все виджеты в box, потом box в anchor
+        self.setup_widgets()  # Функция ниже
+
+        self.anchor_layout.add(self.box_layout)  # Box в anchor
+        self.manager.add(self.anchor_layout)  # Всё в manager
+
+
+
+    def setup_widgets(self):
+        label = UILabel(text="Vymluva",
+                        font_size=50,
+                        text_color=arcade.color.RED,
+                        width=300,
+                        align="center")
+        self.box_layout.add(label)
+
+        flat_button = UIFlatButton(text="Начать", width=200, height=50, color=arcade.color.RED)
+        flat_button.on_click = lambda event: self.open_game()  # Не только лямбду, конечно
+        self.box_layout.add(flat_button)
+
+        flat_button1 = UIFlatButton(text="Настройки", width=200, height=50, color=(0, 0, 0))
+        flat_button1.on_click = lambda event: self.open_settings()  # Не только лямбду, конечно
+        self.box_layout.add(flat_button1)
+        # Здесь добавим ВСЕ виджеты — по порядку! # Заполним ниже
+
+    def on_draw(self):
+        self.clear()
+        self.manager.draw()  # Рисуй GUI поверх всего
+
+    def on_mouse_press(self, x, y, button, modifiers):
+        pass  # Для кликов, но manager сам обрабатывает
+
+    def on_button_clicked(self):
+        pass
+
+    def open_game(self):
+        print('fg')
+
+    def open_settings(self):
+        print('settings')
+
+
+def main():
+    # Создаём экземпляр нашего окна (800×600 пикселей, заголовок «Arcade Первый Контакт»)
+    window = MainWindow()
+    # Вызываем setup() для инициализации игровых объектов
+    window.run()
+    # Запускаем игровой цикл! Окно будет работать, пока его не закроют
+    arcade.run()
+
+
+if __name__ == "__main__":
+    main()
