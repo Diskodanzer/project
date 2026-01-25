@@ -2,7 +2,7 @@ import arcade
 from arcade.gui import UIManager, UIFlatButton, UITextureButton, UILabel, UIInputText, UITextArea, UISlider, UIDropdown, \
     UIMessageBox  # Это разные виджеты
 from arcade.gui.widgets.layout import UIAnchorLayout, UIBoxLayout  # А это менеджеры компоновки, как в pyQT
-from pycode.prototype import GridGame
+from prototype import GridGame
 
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600

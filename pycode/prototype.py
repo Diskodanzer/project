@@ -9,6 +9,7 @@ from custom_camera import Custom
 from enemy import Enemy
 from shield import Shield
 from bar import Bar
+from sphere import Sphere
 from arcade.particles import EmitBurst, Emitter, FadeParticle, EmitMaintainCount
 sys.setrecursionlimit(10000)
 
@@ -23,6 +24,7 @@ class GridGame(arcade.Window):
         super().__init__(screen_width, screen_height, screen_title, fullscreen=False, resizable=True)
 
         self.world_camera = arcade.camera.Camera2D()
+        self.world_camera.zoom = 1.0
         self.cell_size = cell_size
         self.rows = 3000 // cell_size
         self.cols = 3000 // cell_size
@@ -30,7 +32,7 @@ class GridGame(arcade.Window):
         self.player = arcade.SpriteList()
         self.walls = arcade.SpriteList(use_spatial_hash=True, spatial_hash_cell_size=cell_size*4) 
         self.ex_keys = arcade.SpriteList()
-        self.keys = []
+        self.keys = set()
         self.ex_key_count = 0
         self.pickable = False
         self.emitters = []
@@ -49,6 +51,7 @@ class GridGame(arcade.Window):
             falloff_time=0.5,
             shake_frequency=10.0,
         )
+        self.spheres = arcade.SpriteList()
     
     def check(self, row, col):
         if row <= 0 or row >= self.rows or col <= 0 or col >= self.cols:
@@ -99,7 +102,7 @@ class GridGame(arcade.Window):
             self.prev = self.painted
             self.painted = self.check_for_directions(self.painted)
         self.player.append(Character(3000, 3000, 0.14, 200, self.painted[0][0] * self.cell_size  + self.cell_size // 2, self.painted[0][1] * self.cell_size + self.cell_size // 2))
-        self.bar = Bar(self.player[0].center_x, self.player[0].center_y - 350, 25)
+        self.bar = Bar(self.player[0].center_x, self.player[0].center_y - 350, 10)
         self.custom.append(Custom(self.player[0].center_x, self.player[0].center_y))
         self.t_e.append(self.trail(self.painted[0][0] * self.cell_size  + self.cell_size // 2, self.painted[0][1] * self.cell_size + self.cell_size // 2))
         for row in range(self.rows):
@@ -113,13 +116,18 @@ class GridGame(arcade.Window):
             self.player[0],
             self.walls
         )
-        self.enemies.append(Enemy(random.randint(100, 2900), random.randint(100, 2900), 100))
         #self.shield.append(Shield(self.player[0].center_x, self.player[0].center_y))
         y, x = random.randint(0, self.rows - 1), random.randint(0, self.cols - 1)
         if self.grid[y][x] == 0:
             while self.grid[y][x] == 0:
                 y, x = random.randint(0, self.rows - 1), random.randint(0, self.cols - 1)
         self.ex_keys.append(Key(x * self.cell_size + self.cell_size // 2, y * self.cell_size + self.cell_size // 2, 0.15))
+        for i in range(15):
+            y, x = random.randint(0, self.rows - 1), random.randint(0, self.cols - 1)
+            if self.grid[y][x] == 0:
+                while self.grid[y][x] == 0:
+                    y, x = random.randint(0, self.rows - 1), random.randint(0, self.cols - 1)
+            self.spheres.append(Sphere(x * self.cell_size + self.cell_size // 2, y * self.cell_size + self.cell_size // 2))
         for row in range(self.rows):
             for col in range(self.cols):
                 x = col * self.cell_size + self.cell_size // 2
@@ -146,6 +154,7 @@ class GridGame(arcade.Window):
         self.camera_shake.readjust_camera()
         self.enemies.draw()
         #self.shield.draw()
+        self.spheres.draw()
         self.custom.draw()
         self.bar.draw()
         
@@ -154,6 +163,7 @@ class GridGame(arcade.Window):
         for elem in self.player:
             elem.update(delta_time, self.keys)
         self.physics.update()
+        self.camera_shake.start()
         self.camera_shake.update(delta_time)
         self.custom[0].movement(delta_time, self.player[0].center_x, self.player[0].center_y)
         self.world_camera.position = arcade.math.lerp_2d(
@@ -169,7 +179,6 @@ class GridGame(arcade.Window):
             if coll:
                 for elem in self.ex_keys:
                     self.pickable = True
-                    self.camera_shake.start()
             else:
                 self.pickable = False
         for elem in self.emitters:
@@ -183,17 +192,32 @@ class GridGame(arcade.Window):
         self.enemies.update(delta_time, self.player[0].center_x, self.player[0].center_y)
         self.bar.update(delta_time, self.world_camera.position)
         #self.shield.update(delta_time, self.player[0].center_x, self.player[0].center_y)
+        coll_shp = arcade.check_for_collision_with_list(self.player[0], self.spheres)
+        if coll_shp:
+            for elem in coll_shp:
+                elem.remove_from_sprite_lists()
+                self.emitters.append(self.collect_eff(elem.center_x, elem.center_y))
+                self.bar.stretch()
+        if self.bar.width <= 0:
+            self.custom[0].scale = 0.115
+            self.world_camera.zoom = 2.2
+        else:
+            self.custom[0].scale = 0.23
+            self.world_camera.zoom = 1.0
     
     def on_key_press(self, symbol, modifiers):
-        if symbol == arcade.key.E:
+        if symbol == arcade.key.E and self.ex_keys:
             if self.pickable:
                 self.emitters.append(self.collect_eff(self.ex_keys[0].center_x, self.ex_keys[0].center_y))
                 self.ex_keys[0].pickup()
                 self.ex_key_count += 1
-        self.keys.append(symbol)
+                for i in range(10):
+                    self.enemies.append(Enemy(random.randint(100, 2900), random.randint(100, 2900), 100))
+                    
+        self.keys.add(symbol)
     
     def on_key_release(self, symbol, modifiers):
-        del self.keys[self.keys.index(symbol)]
+       self.keys.remove(symbol)
     
     #def on_mouse_press(self, x, y):
     #    self.shield[0].r(x, y, self.player[0].center_x, self.player[0].center_y)

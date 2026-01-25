@@ -1,6 +1,5 @@
 import arcade
 
-
 class Bar:
     def __init__(self, x, y, speed):
         self.center_x = x
@@ -10,7 +9,7 @@ class Bar:
     
     def update(self, delta_time, pos):
         if self.width >= 0:
-            self.width -= delta_time * 50
+            self.width -= delta_time * self.speed
             #self.center_x -= delta_time * 50
         self.center_x, self.center_y = pos
         self.center_y -= 350

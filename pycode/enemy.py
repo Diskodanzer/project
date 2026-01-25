@@ -17,10 +17,13 @@ class Enemy(arcade.Sprite):
     def update(self, delta_time, xp, yp):
         dx = xp - self.center_x
         dy = yp - self.center_y
-        dist = (dx ** 2 + dy ** 2) ** (1/2)
-        if dist != 0:
-            dx = dx / dist
-            dy = dy / dist
-        self.center_x += self.speed * delta_time * dx
-        self.center_y += self.speed * delta_time * dy
+        if dx > 200 or dy > 200:
+            pass
+        else:
+            dist = (dx ** 2 + dy ** 2) ** (1/2)
+            if dist != 0:
+                dx = dx / dist
+                dy = dy / dist
+            self.center_x += self.speed * delta_time * dx
+            self.center_y += self.speed * delta_time * dy
         

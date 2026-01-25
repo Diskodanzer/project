@@ -17,19 +17,19 @@ class Character(arcade.Sprite):
     def update(self, delta_time, keys_pressed):
         if len(keys_pressed) == 0:
             self.is_walking = False
-        if len(keys_pressed) == 1 and keys_pressed[0] == arcade.key.LEFT:
+        if len(keys_pressed) == 1 and arcade.key.LEFT in keys_pressed:
             self.face_dir = False
             self.is_walking = True
             self.left = max(0, self.left - delta_time * self.speed)
-        if len(keys_pressed) == 1 and keys_pressed[0] == arcade.key.RIGHT:
+        if len(keys_pressed) == 1 and arcade.key.RIGHT in keys_pressed:
             self.face_dir = True
             self.is_walking = True
             self.right = min(self.width1, self.right + delta_time * self.speed)
-        if len(keys_pressed) == 1 and keys_pressed[0] == arcade.key.UP:
+        if len(keys_pressed) == 1 and arcade.key.UP in keys_pressed:
             #self.face_dir = True
             self.is_walking = True
             self.top = min(self.height1, self.top + delta_time * self.speed)
-        if len(keys_pressed) == 1 and keys_pressed[0] == arcade.key.DOWN:
+        if len(keys_pressed) == 1 and arcade.key.DOWN in keys_pressed:
             #self.face_dir = True
             self.is_walking = True
             self.bottom = max(0, self.bottom - delta_time * self.speed)
