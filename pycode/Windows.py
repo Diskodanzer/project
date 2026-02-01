@@ -3,19 +3,19 @@ from arcade.gui import UIManager, UIFlatButton, UILabel, UIAnchorLayout, UIBoxLa
 
 # from pycode.prototype import GridGame
 
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
+x = 800
+y = 600
 
 
-class MenuView(arcade.View):
+class MainWindow(arcade.View):
 
-    def __init__(self, screen_width=800, screen_height=600):
+    def __init__(self, x=800, y=600):
         super().__init__()
         self.manager = UIManager()
         self.anchor_layout = None
         self.box_layout = None
-        self.screen_width = screen_width
-        self.screen_height = screen_height
+        self.x = x
+        self.y = y
 
     def on_show_view(self):
         arcade.set_background_color(arcade.color.BLACK)
@@ -72,21 +72,21 @@ class MenuView(arcade.View):
         self.manager.draw()
 
     def open_game(self):
-        game = GridGame(self.screen_width, self.screen_height)
+        game = GridGame(self.x, self.y)
         self.window.show_view(game)
 
     def open_settings(self):
-        settings_view = SettingsView(self)
+        settings_view = SettingsWindow(self)
         self.window.show_view(settings_view)
 
     def update_window_size(self, width, height):
-        self.screen_width = width
-        self.screen_height = height
+        self.x = width
+        self.y = height
         self.window.set_size(width, height)
         self.create_ui()
 
 
-class SettingsView(arcade.View):
+class SettingsWindow(arcade.View):
 
     def __init__(self, menu_view):
         super().__init__()
@@ -144,6 +144,15 @@ class SettingsView(arcade.View):
         )
         dropdown.on_change = self.on_resolution_changed
         self.box_layout.add(dropdown)
+
+        # fps_button = UIFlatButton(
+        #     text="Счётчик фпс",
+        #     width=200,
+        #     height=50,
+        #     color=arcade.color.GREEN
+        # )
+        # fps_button.on_click = self.fps_clicked
+        # self.box_layout.add(fps_button)
 
         apply_button = UIFlatButton(
             text="Применить и вернуться",
@@ -214,13 +223,13 @@ class SettingsView(arcade.View):
 
 def main():
     window = arcade.Window(
-        SCREEN_WIDTH,
-        SCREEN_HEIGHT,
-        "Vymluva - Главное меню",
-        resizable=True
+        x,
+        y,
+        "Vymluva",
+        resizable=False
     )
 
-    menu_view = MenuView(SCREEN_WIDTH, SCREEN_HEIGHT)
+    menu_view = MainWindow(x, y)
     window.show_view(menu_view)
 
     arcade.run()
