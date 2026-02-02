@@ -1,14 +1,13 @@
 import arcade
 from arcade.gui import UIManager, UIFlatButton, UILabel, UIAnchorLayout, UIBoxLayout, UIDropdown
 
-# from pycode.prototype import GridGame
+from prototype import GridGame
 
 x = 800
 y = 600
 
 
 class MainWindow(arcade.View):
-
     def __init__(self, x=800, y=600):
         super().__init__()
         self.manager = UIManager()
@@ -28,7 +27,7 @@ class MainWindow(arcade.View):
         self.manager.enable()
 
         self.anchor_layout = UIAnchorLayout()
-        self.box_layout = UIBoxLayout(vertical=True, space_between=20)
+        self.box_layout = UIBoxLayout(vertical=True, space_between=15)
 
         label = UILabel(
             text="Vymluva",
@@ -64,15 +63,17 @@ class MainWindow(arcade.View):
         )
         self.manager.add(self.anchor_layout)
 
-    def on_hide_view(self):
-        self.manager.disable()
+    # def on_hide_view(self):
+    #     self.manager.disable()
 
     def on_draw(self):
         self.clear()
         self.manager.draw()
 
     def open_game(self):
-        game = GridGame(self.x, self.y)
+        game = GridGame(800, 800, 'Game', 100)
+        game.setup()
+        game.center_window()
         self.window.show_view(game)
 
     def open_settings(self):
@@ -101,7 +102,7 @@ class SettingsWindow(arcade.View):
         self.new_height = self.current_height
 
     def on_show_view(self):
-        arcade.set_background_color(arcade.color.DARK_BLUE)
+        arcade.set_background_color(arcade.color.BLACK)
 
         self.create_ui()
 
@@ -131,7 +132,7 @@ class SettingsWindow(arcade.View):
         )
         self.box_layout.add(size_label)
 
-        resolution_options = ["800 x 600", "1024 x 768", "1280 x 720", "1920 x 1080"]
+        resolution_options = ["800 x 800", "1024 x 1024", "1280 x 1280", "1080 x 1080"]
 
         current_res = f"{self.current_width} x {self.current_height}"
         if current_res not in resolution_options:
@@ -209,6 +210,7 @@ class SettingsWindow(arcade.View):
                 self.new_height != self.current_height):
 
             self.window.set_size(self.new_width, self.new_height)
+            self.window.center_window()
 
             self.menu_view.update_window_size(self.new_width, self.new_height)
             print(f"Размер окна изменен на: {self.new_width}x{self.new_height}")
@@ -230,7 +232,9 @@ def main():
     )
 
     menu_view = MainWindow(x, y)
+    
     window.show_view(menu_view)
+    window.center_window()
 
     arcade.run()
 
