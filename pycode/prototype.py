@@ -10,7 +10,10 @@ from enemy import Enemy
 from shield import Shield
 from bar import Bar
 from sphere import Sphere
+from exit import Exit
 from arcade.particles import EmitBurst, Emitter, FadeParticle, EmitMaintainCount
+from load_window import LoadingWindow
+import threading
 sys.setrecursionlimit(10000)
 
 # Параметры экрана
@@ -26,24 +29,26 @@ class GridGame(arcade.Window):
         self.world_camera = arcade.camera.Camera2D()
         self.world_camera.zoom = 1.0
         self.cell_size = cell_size
+        self.points_to_end = 3   #Механика с кол-вом лабиринтов, которое нужно будет пройти, чтобы дойти до концовки
+        self.cell_size = cell_size
         self.rows = 3000 // cell_size
         self.cols = 3000 // cell_size
         self.painted = 0
         self.player = arcade.SpriteList()
-        self.walls = arcade.SpriteList(use_spatial_hash=True, spatial_hash_cell_size=cell_size*4) 
+        self.walls = arcade.SpriteList(use_spatial_hash=True, spatial_hash_cell_size=self.cell_size*4) 
         self.ex_keys = arcade.SpriteList()
         self.keys = set()
         self.ex_key_count = 0
         self.pickable = False
         self.emitters = []
-        self.t_e = []
+        self.t_e = [] #trail_effect(для персонажа)
         self.ex_e = None
         self.exit = arcade.SpriteList() # Сделать логику выхода с уровня
-        self.path = arcade.shape_list.ShapeElementList()
+        self.path = arcade.SpriteList()
         self.custom = arcade.SpriteList()
         self.grid = None
         self.enemies = arcade.SpriteList()
-        #self.shield = arcade.SpriteList()
+        self.shield = None
         self.camera_shake = arcade.camera.grips.ScreenShake2D(   #спросить что тут не так
             self.world_camera.view_data,  
             max_amplitude=15.0,
@@ -52,7 +57,37 @@ class GridGame(arcade.Window):
             shake_frequency=10.0,
         )
         self.spheres = arcade.SpriteList()
-    
+        self.exit = None
+        self.is_loaded = False
+        
+        self.grow = False
+        self.star = arcade.SpriteList()
+        star = arcade.Sprite()
+        arcade.texture = arcade.load_texture('recources/star.png')
+        star.scale = 0.5
+        star.center_x = self.width / 2
+        star.center_y = self.height / 2
+        self.star.append(star)
+        self.start_loading_thread()
+        self.tex = arcade.load_texture('recources\СharacterSprite.png')
+
+    def start_loading_thread(self):
+        """Запускаем setup() в отдельном потоке"""
+        import threading
+        
+        def thread_target():
+            # ВСЯ ЗАГРУЗКА ЗДЕСЬ
+            self.setup()  # <-- Вызываем наш setup
+            
+            # Когда всё загружено
+            #self.game_state = "PLAYING"
+            print("Загрузка завершена!")
+        
+        # Создаем и запускаем поток
+        thread = threading.Thread(target=thread_target)
+        thread.daemon = True  # Поток завершится с программой
+        thread.start()
+
     def check(self, row, col):
         if row <= 0 or row >= self.rows or col <= 0 or col >= self.cols:
             return False
@@ -101,7 +136,7 @@ class GridGame(arcade.Window):
         while self.prev != self.painted:
             self.prev = self.painted
             self.painted = self.check_for_directions(self.painted)
-        self.player.append(Character(3000, 3000, 0.14, 200, self.painted[0][0] * self.cell_size  + self.cell_size // 2, self.painted[0][1] * self.cell_size + self.cell_size // 2))
+        self.player.append(Character(3000, 3000, 0.14, 200, self.painted[0][0] * self.cell_size  + self.cell_size // 2, self.painted[0][1] * self.cell_size + self.cell_size // 2, self.tex))
         self.bar = Bar(self.player[0].center_x, self.player[0].center_y - 350, 10)
         self.custom.append(Custom(self.player[0].center_x, self.player[0].center_y))
         self.t_e.append(self.trail(self.painted[0][0] * self.cell_size  + self.cell_size // 2, self.painted[0][1] * self.cell_size + self.cell_size // 2))
@@ -122,98 +157,158 @@ class GridGame(arcade.Window):
             while self.grid[y][x] == 0:
                 y, x = random.randint(0, self.rows - 1), random.randint(0, self.cols - 1)
         self.ex_keys.append(Key(x * self.cell_size + self.cell_size // 2, y * self.cell_size + self.cell_size // 2, 0.15))
+        
+        y, x = random.randint(0, self.rows - 1), random.randint(0, self.cols - 1)
+        if self.grid[y][x] == 0:
+            while self.grid[y][x] == 0:
+                y, x = random.randint(0, self.rows - 1), random.randint(0, self.cols - 1)
+        self.exit = Exit(x, y)
+                
         for i in range(15):
             y, x = random.randint(0, self.rows - 1), random.randint(0, self.cols - 1)
             if self.grid[y][x] == 0:
                 while self.grid[y][x] == 0:
                     y, x = random.randint(0, self.rows - 1), random.randint(0, self.cols - 1)
             self.spheres.append(Sphere(x * self.cell_size + self.cell_size // 2, y * self.cell_size + self.cell_size // 2))
-        for row in range(self.rows):
+        '''for row in range(self.rows):
             for col in range(self.cols):
                 x = col * self.cell_size + self.cell_size // 2
                 y = row * self.cell_size + self.cell_size // 2
                 if self.grid[row][col] == 1:
-                    rect = arcade.shape_list.create_rectangle_filled(center_x=x, center_y=y,
-                                            width=self.cell_size,
-                                            height=self.cell_size, color=arcade.color.DAVY_GREY)
-                    self.path.append(rect)
+                    rect = arcade.Sprite()
+                    rect.texture = arcade.load_texture('recources/path.png')
+                    rect.scale = 1.0
+                    rect.center_x = x
+                    rect.center_y = y
+                    self.path.append(rect)'''
+        self.shield = Shield(self.player[0].center_x, self.player[0].center_y)
+        self.is_loaded = True
+        print('Загрузилось!')
         #pprint.pprint(self.grid)
         #pprint.pprint(self.painted)
                 
     def on_draw(self):
         self.clear()
-        self.world_camera.use()
-        self.camera_shake.update_camera()
-        self.path.draw()
-        self.player.draw()
-        self.t_e[0].draw()
-        self.walls.draw()
-        self.ex_keys.draw()
-        for elem in self.emitters:
-            elem.draw()
-        self.camera_shake.readjust_camera()
-        self.enemies.draw()
-        #self.shield.draw()
-        self.spheres.draw()
-        self.custom.draw()
-        self.bar.draw()
+        if self.is_loaded:
+            self.world_camera.use()
+            self.camera_shake.update_camera()
+            self.path.draw()
+            self.player.draw()
+            self.t_e[0].draw()
+            self.walls.draw()
+            self.ex_keys.draw()
+            for elem in self.emitters:
+                elem.draw()
+            self.camera_shake.readjust_camera()
+            self.enemies.draw()
+            #self.shield.draw()
+            self.spheres.draw()
+            self.custom.draw()
+            self.bar.draw()
+            self.shield.draw()
+            self.exit.draw()
+        else:
+            arcade.draw_rect_filled(arcade.rect.XYWH(self.width / 2, self.height / 2, self.width, self.height), arcade.color.BLACK)
+            self.star.draw()
         
     
     def on_update(self, delta_time):
-        for elem in self.player:
-            elem.update(delta_time, self.keys)
-        self.physics.update()
-        self.camera_shake.start()
-        self.camera_shake.update(delta_time)
-        self.custom[0].movement(delta_time, self.player[0].center_x, self.player[0].center_y)
-        self.world_camera.position = arcade.math.lerp_2d(
-            self.world_camera.position,
-            (self.player[0].center_x,
-            self.player[0].center_y),
-            0.12
-        )
-        if self.ex_keys:
-            self.ex_keys[0].update_animation(delta_time)
-        if self.ex_keys:
-            coll = arcade.check_for_collision_with_list(self.player[0], self.ex_keys)
-            if coll:
-                for elem in self.ex_keys:
-                    self.pickable = True
+        if self.is_loaded:
+            for elem in self.player:
+                elem.update(delta_time, self.keys)
+            self.physics.update()
+            self.camera_shake.start()
+            self.camera_shake.update(delta_time)
+            self.custom[0].movement(delta_time, self.player[0].center_x, self.player[0].center_y)
+            self.world_camera.position = arcade.math.lerp_2d(
+                self.world_camera.position,
+                (self.player[0].center_x,
+                self.player[0].center_y),
+                0.12
+            )
+            if self.ex_keys:
+                self.ex_keys[0].update_animation(delta_time)
+            if self.ex_keys:
+                coll = arcade.check_for_collision_with_list(self.player[0], self.ex_keys)
+                if coll:
+                    for elem in self.ex_keys:
+                        self.pickable = True
+                else:
+                    self.pickable = False
+            for elem in self.emitters:
+                elem.update()
+                if elem.can_reap():
+                    self.emitters.remove(elem)
+            for elem in self.t_e:
+                elem.center_x = self.player[0].center_x
+                elem.center_y = self.player[0].center_y
+                elem.update()
+            self.enemies.update(delta_time, self.player[0].center_x, self.player[0].center_y)
+            self.bar.update(delta_time, self.world_camera.position)
+            #self.shield.update(delta_time, self.player[0].center_x, self.player[0].center_y)
+            coll_sph = arcade.check_for_collision_with_list(self.player[0], self.spheres)
+            if coll_sph:
+                for elem in coll_sph:
+                    elem.remove_from_sprite_lists()
+                    self.emitters.append(self.collect_eff(elem.center_x, elem.center_y))
+                    self.bar.stretch()
+            if self.bar.width <= 0:
+                self.custom[0].scale = 0.115
+                self.world_camera.zoom = 2.2
+            else:  
+                self.custom[0].scale = 0.23
+                self.world_camera.zoom = 1.0
+            self.shield.update(self.player[0].center_x, self.player[0].center_y)
+            if arcade.key.SPACE in self.keys:
+                self.shield.adjust(delta_time)
+                for elem in self.enemies:
+                    if abs(self.player[0].center_x - elem.center_x) <= 85 and abs(self.player[0].center_y - elem.center_y) <= 85:
+                        elem.knockback()
             else:
+                self.shield.disappear()
+            self.exit.update(delta_time)
+            if abs(self.exit.x - self.player[0].center_x) <= 25 and abs(self.exit.y - self.player[0].center_y) <= 25:
+                self.painted = 0
+                self.player = arcade.SpriteList()
+                self.walls = arcade.SpriteList(use_spatial_hash=True, spatial_hash_cell_size=self.cell_size*4) 
+                self.ex_keys = arcade.SpriteList()
+                self.keys = set()
+                self.ex_key_count = 0
                 self.pickable = False
-        for elem in self.emitters:
-            elem.update()
-            if elem.can_reap():
-                self.emitters.remove(elem)
-        for elem in self.t_e:
-            self.t_e[0].center_x = self.player[0].center_x
-            self.t_e[0].center_y = self.player[0].center_y
-            elem.update()
-        self.enemies.update(delta_time, self.player[0].center_x, self.player[0].center_y)
-        self.bar.update(delta_time, self.world_camera.position)
-        #self.shield.update(delta_time, self.player[0].center_x, self.player[0].center_y)
-        coll_shp = arcade.check_for_collision_with_list(self.player[0], self.spheres)
-        if coll_shp:
-            for elem in coll_shp:
-                elem.remove_from_sprite_lists()
-                self.emitters.append(self.collect_eff(elem.center_x, elem.center_y))
-                self.bar.stretch()
-        if self.bar.width <= 0:
-            self.custom[0].scale = 0.115
-            self.world_camera.zoom = 2.2
+                self.emitters = []
+                self.t_e = [] #trail_effect(для персонажа)
+                self.ex_e = None
+                self.exit = arcade.SpriteList() # Сделать логику выхода с уровня
+                self.path = arcade.SpriteList()
+                self.custom = arcade.SpriteList()
+                self.grid = None
+                self.enemies = arcade.SpriteList()
+                self.shield = None
+                self.spheres = arcade.SpriteList()
+                self.exit = None
+                self.setup()
         else:
-            self.custom[0].scale = 0.23
-            self.world_camera.zoom = 1.0
+            if self.star[0].scale[0] >= 0.5:
+                self.grow = False
+            if not self.grow:
+                self.star[0].scale = (self.star[0].scale[0] + 0.1 * delta_time, self.star[0].scale[1] + 0.1 * delta_time)
+            if self.star[0].scale[0] >= 0.15 and not self.grow:
+                self.star[0].scale = (self.star[0].scale[0] - 0.1 * delta_time, self.star[0].scale[1] - 0.1 * delta_time)
+            else:
+                self.grow = True
+    
     
     def on_key_press(self, symbol, modifiers):
         if symbol == arcade.key.E and self.ex_keys:
             if self.pickable:
                 self.emitters.append(self.collect_eff(self.ex_keys[0].center_x, self.ex_keys[0].center_y))
                 self.ex_keys[0].pickup()
+                self.exit.appear = True
                 self.ex_key_count += 1
                 for i in range(10):
                     self.enemies.append(Enemy(random.randint(100, 2900), random.randint(100, 2900), 100))
-                    
+        if symbol == arcade.key.ESCAPE:
+            self.close()
         self.keys.add(symbol)
     
     def on_key_release(self, symbol, modifiers):
@@ -252,7 +347,7 @@ class GridGame(arcade.Window):
             
 def main():
     game = GridGame(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE, 100)
-    game.setup()
+    #game.setup()
     arcade.run()
 
 if __name__ == "__main__":
