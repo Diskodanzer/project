@@ -1,5 +1,5 @@
 import arcade
-from arcade.gui import UIManager, UIFlatButton, UILabel, UIAnchorLayout, UIBoxLayout, UIDropdown
+from arcade.gui import UIManager, UIFlatButton, UILabel, UIAnchorLayout, UIBoxLayout, UIDropdown, UITextureButton
 
 from prototype import GridGame
 
@@ -38,29 +38,18 @@ class MainWindow(arcade.View):
         )
         self.box_layout.add(label)
 
-        start_button = UIFlatButton(
-            text="Начать",
-            width=200,
-            height=50,
-            color=arcade.color.WHITE
-        )
+        texture_normal = arcade.load_texture(r"recources\bg.jpg")
+        start_button = UITextureButton(texture=texture_normal,
+                                         text='Начать',
+                                         width=200,
+                                         height=50)
         start_button.on_click = lambda event: self.open_game()
         self.box_layout.add(start_button)
 
-        texture_normal = arcade.load_texture(":resources:/gui_basic_assets/button/red_normal.png")
-        texture_hovered = arcade.load_texture(":resources:/gui_basic_assets/button/red_hover.png")
-        texture_pressed = arcade.load_texture(":resources:/gui_basic_assets/button/red_press.png")
-        texture_button = UITextureButton(texture=texture_normal, 
-                                        texture_hovered=texture_hovered,
-                                        texture_pressed=texture_pressed,
-                                        scale=1.0)
-
-        settings_button = UIFlatButton(
-            text="Настройки",
-            width=200,
-            height=50,
-            color=arcade.color.GRAY
-        )
+        settings_button = UITextureButton(texture=texture_normal,
+                                       text='Настройки',
+                                       width=200,
+                                       height=50)
         settings_button.on_click = lambda event: self.open_settings()
         self.box_layout.add(settings_button)
 
@@ -79,13 +68,9 @@ class MainWindow(arcade.View):
         self.manager.draw()
 
     def open_game(self):
-<<<<<<< Updated upstream
         game = GridGame(800, 800, 'Game', 100)
         game.setup()
         game.center_window()
-=======
-        game = GridGame(self.x, self.y, 'vymluva', 10)
->>>>>>> Stashed changes
         self.window.show_view(game)
 
     def open_settings(self):
@@ -143,12 +128,7 @@ class SettingsWindow(arcade.View):
             align="center"
         )
         self.box_layout.add(size_label)
-
-<<<<<<< Updated upstream
-        resolution_options = ["800 x 800", "1024 x 1024", "1280 x 1280", "1080 x 1080"]
-=======
         resolution_options = ["800 x 800", "1024 x 1024", "1280 x 1280", "1920 x 1920"]
->>>>>>> Stashed changes
 
         current_res = f"{self.current_width} x {self.current_height}"
         if current_res not in resolution_options:
@@ -171,21 +151,19 @@ class SettingsWindow(arcade.View):
         # fps_button.on_click = self.fps_clicked
         # self.box_layout.add(fps_button)
 
-        apply_button = UIFlatButton(
-            text="Применить и вернуться",
-            width=200,
-            height=50,
-            color=arcade.color.GREEN
-        )
+        texture_normal = arcade.load_texture(r"recources\bg.jpg")
+
+        apply_button = UITextureButton(texture=texture_normal,
+                                          text='Сохранить',
+                                          width=200,
+                                          height=50)
         apply_button.on_click = self.on_apply_button_click
         self.box_layout.add(apply_button)
 
-        back_button = UIFlatButton(
-            text="Назад без сохранения",
-            width=200,
-            height=50,
-            color=arcade.color.RED
-        )
+        back_button = UITextureButton(texture=texture_normal,
+                                       text='Отмена',
+                                       width=200,
+                                       height=50)
         back_button.on_click = self.on_back_button_click
         self.box_layout.add(back_button)
 
