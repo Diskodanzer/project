@@ -1,9 +1,9 @@
 import arcade
 
 class Character(arcade.Sprite):
-    def __init__(self, SCREEN_WIDTH, SCREEN_HEIGHT, SCALE, SPEED, x, y):
+    def __init__(self, SCREEN_WIDTH, SCREEN_HEIGHT, SCALE, SPEED, x, y, tex):
         super().__init__()
-        self.textures = [arcade.load_texture('recources\СharacterSprite.png')]
+        self.textures = [tex]
         self.set_texture(0)
         self.center_x = x
         self.width1 = SCREEN_WIDTH
