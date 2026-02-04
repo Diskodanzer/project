@@ -4,7 +4,7 @@ from arcade.gui import UIManager, UIFlatButton, UILabel, UIAnchorLayout, UIBoxLa
 from prototype import GridGame
 
 x = 800
-y = 600
+y = 800
 
 
 class MainWindow(arcade.View):
@@ -47,6 +47,14 @@ class MainWindow(arcade.View):
         start_button.on_click = lambda event: self.open_game()
         self.box_layout.add(start_button)
 
+        texture_normal = arcade.load_texture(":resources:/gui_basic_assets/button/red_normal.png")
+        texture_hovered = arcade.load_texture(":resources:/gui_basic_assets/button/red_hover.png")
+        texture_pressed = arcade.load_texture(":resources:/gui_basic_assets/button/red_press.png")
+        texture_button = UITextureButton(texture=texture_normal, 
+                                        texture_hovered=texture_hovered,
+                                        texture_pressed=texture_pressed,
+                                        scale=1.0)
+
         settings_button = UIFlatButton(
             text="Настройки",
             width=200,
@@ -71,9 +79,13 @@ class MainWindow(arcade.View):
         self.manager.draw()
 
     def open_game(self):
+<<<<<<< Updated upstream
         game = GridGame(800, 800, 'Game', 100)
         game.setup()
         game.center_window()
+=======
+        game = GridGame(self.x, self.y, 'vymluva', 10)
+>>>>>>> Stashed changes
         self.window.show_view(game)
 
     def open_settings(self):
@@ -132,7 +144,11 @@ class SettingsWindow(arcade.View):
         )
         self.box_layout.add(size_label)
 
+<<<<<<< Updated upstream
         resolution_options = ["800 x 800", "1024 x 1024", "1280 x 1280", "1080 x 1080"]
+=======
+        resolution_options = ["800 x 800", "1024 x 1024", "1280 x 1280", "1920 x 1920"]
+>>>>>>> Stashed changes
 
         current_res = f"{self.current_width} x {self.current_height}"
         if current_res not in resolution_options:

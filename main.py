@@ -1,9 +1,9 @@
 import arcade
-from pycode.basewindow import BaseWindow
+from pycode.Windows import MainWindow
 
 
 if __name__ == "__main__":
-    window = BaseWindow()
+    window = MainWindow()
 
     window.switch_view("start")
 
