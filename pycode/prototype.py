@@ -449,7 +449,6 @@ class GridGame(arcade.Window):
                 self.exit.update(delta_time)
                 if abs(self.exit.x - self.player[0].center_x) <= 25 and abs(self.exit.y - self.player[0].center_y) <= 25:
                     self.reset_level()
-            self.reset_level()
             self.timer += delta_time
 
     def process_queue(self):
