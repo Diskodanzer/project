@@ -1,7 +1,7 @@
 import arcade
 from arcade.gui import UIManager, UIFlatButton, UILabel, UIAnchorLayout, UIBoxLayout, UIDropdown, UITextureButton
 
-from prototype import GridGame
+from prototype import Game
 
 x = 800
 y = 800
@@ -69,7 +69,7 @@ class MainWindow(arcade.View):
 
     def open_game(self):
         self.window.close()
-        game_window = GridGame(self.window.width, self.window.height, 'Game', 100)
+        game_window = Game(self.window.width, self.window.height, 'Game', 100)
         arcade.run()
 
     def open_settings(self):

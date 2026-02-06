@@ -17,15 +17,14 @@ from sphere import Sphere
 from exit import Exit
 from arcade.particles import EmitBurst, Emitter, FadeParticle, EmitMaintainCount
 from ending_level import End_level
-sys.setrecursionlimit(10000)
 
 # Параметры экрана
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 800
+SCREEN_WIDTH = 1000
+SCREEN_HEIGHT = 1000
 SCREEN_TITLE = "Game"
 
 
-class GridGame(arcade.Window):
+class Game(arcade.Window):
     def __init__(self, screen_width, screen_height, screen_title, cell_size):
         
         self.is_loading = True
@@ -38,7 +37,7 @@ class GridGame(arcade.Window):
         self.progress_queue = Queue()
         
         self.cell_size = cell_size
-        self.points_to_end = 0
+        self.points_to_end = 3
         self.rows = 3000 // cell_size
         self.cols = 3000 // cell_size
         self.screen_width = screen_width
@@ -99,6 +98,7 @@ class GridGame(arcade.Window):
 
     def on_show(self):
         """Окно показано - начинаем загрузку в фоновом потоке"""
+        
         if self.is_loading and not self.loading_thread:
             self.loading_thread = threading.Thread(
                 target=self.setup_in_thread, daemon=True)
@@ -450,6 +450,9 @@ class GridGame(arcade.Window):
                 if abs(self.exit.x - self.player[0].center_x) <= 25 and abs(self.exit.y - self.player[0].center_y) <= 25:
                     self.reset_level()
             self.timer += delta_time
+            self.coll_with_enemies = arcade.check_for_collision_with_list(self.player[0], self.enemies)
+            if self.coll_with_enemies:
+                self.reset_level()
 
     def process_queue(self):
         """Обрабатывает сообщения из очереди (только в основном потоке)"""
@@ -514,7 +517,7 @@ class GridGame(arcade.Window):
         """Сброс уровня для новой генерации"""
         self.is_loading = True
         self.loading_progress = 0
-        if random.random() <= 0.5:
+        if random.random() <= 0.5 and not self.coll_with_enemies:
             self.points_to_end -= 1
         if self.points_to_end <= 0:
             arcade.stop_sound(self.music_player)
@@ -581,7 +584,7 @@ class GridGame(arcade.Window):
 
 def main():
     """Главная функция"""
-    window = GridGame(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE, 100)
+    window = Game(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE, 100)
     arcade.run()
 
 
