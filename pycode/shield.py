@@ -1,6 +1,5 @@
 import arcade
 
-#сильно доработать надо
 
 class Shield:
     def __init__(self, x, y):

@@ -69,7 +69,7 @@ class MainWindow(arcade.View):
 
     def open_game(self):
         self.window.close()
-        game_window = GridGame(800, 800, 'Game', 100)
+        game_window = GridGame(self.window.width, self.window.height, 'Game', 100)
         arcade.run()
 
     def open_settings(self):

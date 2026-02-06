@@ -1,7 +1,7 @@
 import arcade
 from arcade.gui import UIManager, UIFlatButton, UITextureButton, UILabel, UIInputText, UITextArea, UISlider, UIDropdown, \
-    UIMessageBox  # Это разные виджеты
-from arcade.gui.widgets.layout import UIAnchorLayout, UIBoxLayout  # А это менеджеры компоновки, как в pyQT
+    UIMessageBox 
+from arcade.gui.widgets.layout import UIAnchorLayout, UIBoxLayout  
 
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
@@ -12,19 +12,16 @@ class MainWindow(arcade.Window):
         super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, "Супер GUI Пример!")
         arcade.set_background_color(arcade.color.BLACK)
 
-        # UIManager — сердце GUI
         self.manager = UIManager()
-        self.manager.enable()  # Включить, чтоб виджеты работали
+        self.manager.enable() 
 
-        # Layout для организации — как полки в шкафу
-        self.anchor_layout = UIAnchorLayout()  # Центрирует виджеты
-        self.box_layout = UIBoxLayout(vertical=True, space_between=10)  # Вертикальный стек
+        self.anchor_layout = UIAnchorLayout() 
+        self.box_layout = UIBoxLayout(vertical=True, space_between=10)
 
-        # Добавим все виджеты в box, потом box в anchor
-        self.setup_widgets()  # Функция ниже
+        self.setup_widgets()  
 
-        self.anchor_layout.add(self.box_layout)  # Box в anchor
-        self.manager.add(self.anchor_layout)  # Всё в manager
+        self.anchor_layout.add(self.box_layout) 
+        self.manager.add(self.anchor_layout) 
 
 
 
@@ -49,10 +46,10 @@ class MainWindow(arcade.Window):
 
     def on_draw(self):
         self.clear()
-        self.manager.draw()  # Рисуй GUI поверх всего
+        self.manager.draw()
 
     def on_mouse_press(self, x, y, button, modifiers):
-        pass  # Для кликов, но manager сам обрабатывает
+        pass 
 
     def on_button_clicked(self):
         pass
@@ -65,11 +62,8 @@ class MainWindow(arcade.Window):
 
 
 def main():
-    # Создаём экземпляр нашего окна (800×600 пикселей, заголовок «Arcade Первый Контакт»)
     window = MainWindow()
-    # Вызываем setup() для инициализации игровых объектов
     window.run()
-    # Запускаем игровой цикл! Окно будет работать, пока его не закроют
     arcade.run()
 
 
