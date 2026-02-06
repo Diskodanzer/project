@@ -1,5 +1,5 @@
 import arcade
-from pycode.Windows import MainWindow
+from Windows import MainWindow
 
 
 if __name__ == "__main__":

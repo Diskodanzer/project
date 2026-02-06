@@ -4,7 +4,6 @@ class Exit:
     def __init__(self, x, y):
         self.x = x
         self.y = y
-        print(x, y)
         self.speed = 100
         self.height = 0
         self.appear = False
