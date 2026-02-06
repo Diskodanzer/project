@@ -8,7 +8,7 @@ y = 800
 
 
 class MainWindow(arcade.View):
-    def __init__(self, x=800, y=600):
+    def __init__(self, x=800, y=800):
         super().__init__()
         self.manager = UIManager()
         self.anchor_layout = None
@@ -68,10 +68,9 @@ class MainWindow(arcade.View):
         self.manager.draw()
 
     def open_game(self):
-        game = GridGame(800, 800, 'Game', 100)
-        game.setup()
-        game.center_window()
-        self.window.show_view(game)
+        self.window.close()
+        game_window = GridGame(800, 800, 'Game', 100)
+        arcade.run()
 
     def open_settings(self):
         settings_view = SettingsWindow(self)
