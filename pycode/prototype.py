@@ -17,10 +17,15 @@ from sphere import Sphere
 from exit import Exit
 from arcade.particles import EmitBurst, Emitter, FadeParticle, EmitMaintainCount
 from ending_level import End_level
+import json
 
 # Параметры экрана
-SCREEN_WIDTH = 1000
-SCREEN_HEIGHT = 1000
+SCREEN_WIDTH = None
+SCREEN_HEIGHT = None
+with open('settings/settings.json', 'r') as f:
+    data = json.load(f)
+    SCREEN_WIDTH = data['curr_res_x']
+    SCREEN_HEIGHT = data['curr_res_y']
 SCREEN_TITLE = "Game"
 
 
@@ -582,9 +587,10 @@ class Game(arcade.Window):
         )
 
 
+
 def main():
     """Главная функция"""
-    window = Game(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE, 100)
+    window = Game(SCREEN_WIDTH, SCREEN_HEIGHT, 'game', 100)
     arcade.run()
 
 

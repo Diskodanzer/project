@@ -1,7 +1,9 @@
 import arcade
 from arcade.gui import UIManager, UIFlatButton, UILabel, UIAnchorLayout, UIBoxLayout, UIDropdown, UITextureButton
-
-from prototype import Game
+import subprocess
+import sys
+import os
+import json
 
 x = 800
 y = 800
@@ -68,9 +70,17 @@ class MainWindow(arcade.View):
         self.manager.draw()
 
     def open_game(self):
+        current_dir = os.path.dirname(os.path.abspath(__file__))
         self.window.close()
-        game_window = Game(self.window.width, self.window.height, 'Game', 100)
-        arcade.run()
+        subprocess.run([
+            sys.executable,
+            os.path.join(current_dir, "prototype.py")
+        ])
+        with open('settings/settings.json', 'w') as f:
+            data = {}
+            data['curr_res_x'] = self.window.width
+            data['curr_res_y'] = self.window.height
+            json.dump(data, f)
 
     def open_settings(self):
         settings_view = SettingsWindow(self)
